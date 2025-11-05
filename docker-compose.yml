@@ -1,0 +1,7 @@
+services:
+  redis-checkpointer:
+    image: "redis/redis-stack:latest"
+    container_name: redis_checkpointer
+    ports:
+      - "6381:6379"  # Redis port #Expose externally to the host for development purpose
+    restart: always
