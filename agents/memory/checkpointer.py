@@ -15,8 +15,7 @@ logger = structlog.get_logger()
 load_dotenv()
 
 # Get Redis URL from environment or use default
-# Supports both Docker (redis://redis-chat:6379/0) and host (redis://localhost:6379/0)
-REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6381/0")
 
 # Redis connection parameters for stability
 # Keep it simple - only essential timeout settings
