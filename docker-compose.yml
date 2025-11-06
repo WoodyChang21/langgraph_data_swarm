@@ -15,6 +15,7 @@ services:
       - .env
     environment:
       - REDIS_URL=redis://redis-chat:6379/0
+      - OLLAMA_BASE_URL=http://ollama:11434
     restart: always
     deploy:
       resources:
@@ -79,9 +80,27 @@ services:
     networks:
       - aiot_network
 
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+    networks:
+      - aiot_network
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
 volumes:
   open-webui:
   redis-data:
+  ollama-data:
 
 networks:
   aiot_network:

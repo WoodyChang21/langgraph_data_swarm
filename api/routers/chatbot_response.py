@@ -145,41 +145,41 @@ async def stream_response(user_id: str, message: str, model: str):
                             # Stream tool calls as "thinking" indicators
                             if hasattr(msg, 'tool_calls') and msg.tool_calls:
                                 # Show what tool is being called
-                                # for tool_call in msg.tool_calls:
-                                #     tool_name = tool_call.get('name', 'unknown')
-                                #     thinking_msg = f"🔄 Calling {tool_name}...\n"
+                                for tool_call in msg.tool_calls:
+                                    tool_name = tool_call.get('name', 'unknown')
+                                    thinking_msg = f"🔄 Calling {tool_name}...\n"
                                     
-                                #     event = {
-                                #         "id": f"chatcmpl-{user_id}",
-                                #         "object": "chat.completion.chunk",
-                                #         "created": int(asyncio.get_event_loop().time()),
-                                #         "model": model or "airport-swarm",
-                                #         "choices": [{
-                                #             "index": 0,
-                                #             "delta": {"content": thinking_msg},
-                                #             "finish_reason": None
-                                #         }]
-                                #     }
-                                #     yield f"data: {json.dumps(event)}\n\n"
+                                    event = {
+                                        "id": f"chatcmpl-{user_id}",
+                                        "object": "chat.completion.chunk",
+                                        "created": int(asyncio.get_event_loop().time()),
+                                        "model": model or "airport-swarm",
+                                        "choices": [{
+                                            "index": 0,
+                                            "delta": {"content": thinking_msg},
+                                            "finish_reason": None
+                                        }]
+                                    }
+                                    yield f"data: {json.dumps(event)}\n\n"
                                 continue
                             
                             # Stream tool results
                             if type(msg).__name__ == "ToolMessage":
-                                # content = getattr(msg, 'content', '')
-                                # if content:
-                                #     result_msg = f"✅ Tool completed\n"
-                                #     event = {
-                                #         "id": f"chatcmpl-{user_id}",
-                                #         "object": "chat.completion.chunk",
-                                #         "created": int(asyncio.get_event_loop().time()),
-                                #         "model": model or "airport-swarm",
-                                #         "choices": [{
-                                #             "index": 0,
-                                #             "delta": {"content": result_msg},
-                                #             "finish_reason": None
-                                #         }]
-                                #     }
-                                #     yield f"data: {json.dumps(event)}\n\n"
+                                content = getattr(msg, 'content', '')
+                                if content:
+                                    result_msg = f"✅ Tool completed\n"
+                                    event = {
+                                        "id": f"chatcmpl-{user_id}",
+                                        "object": "chat.completion.chunk",
+                                        "created": int(asyncio.get_event_loop().time()),
+                                        "model": model or "airport-swarm",
+                                        "choices": [{
+                                            "index": 0,
+                                            "delta": {"content": result_msg},
+                                            "finish_reason": None
+                                        }]
+                                    }
+                                    yield f"data: {json.dumps(event)}\n\n"
                                 continue
                             
                             # Stream final AI responses
