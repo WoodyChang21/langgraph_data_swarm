@@ -1,0 +1,13 @@
+{
+  "dependencies": [
+    "."
+  ],
+  "graphs": {
+    "agent": "./langgraph_server.py:graph"
+  },
+  "env": ".env",
+  "python_version": "3.11",
+  "pip_config_file": null,
+  "dockerfile_lines": []
+}
+

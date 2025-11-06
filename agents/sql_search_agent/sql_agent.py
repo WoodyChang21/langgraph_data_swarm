@@ -15,7 +15,7 @@ from langchain_core.messages import HumanMessage
 
 from agents.sql_search_agent.s3_csv_utils import s3_csv_uploader
 from agents.llm_model import LLM
-from agents.memory.checkpointer import get_shared_checkpointer
+# from agents.memory.checkpointer import get_shared_checkpointer
 
 logger = logging.getLogger(__name__)
 load_dotenv()
@@ -363,7 +363,7 @@ class SQLiteAgent:
 # ==================================== Agent (For STANDALONE purposes) ==============================================
     
     async def create_sql_agent(self):
-        checkpointer = await get_shared_checkpointer()
+        # checkpointer = await get_shared_checkpointer()
         tools = self._get_tools()
         agent = create_react_agent(
             self.llm,
@@ -379,23 +379,23 @@ class SQLiteAgent:
         return response["messages"][-1].content
 
 
-async def main():
-    sqlite_agent = SQLiteAgent()
-    user_id = "1"
+# async def main():
+#     sqlite_agent = SQLiteAgent()
+#     user_id = "1"
     
-    while True:
-        user_input = input("Enter your question: ")
-        if user_input.lower() == "exit":
-            break
-        if user_input.lower() == "clear history":
-            from agents.memory.memory_manager import clear_thread
-            await clear_thread(user_id)
-            print(f"History cleared for {user_id}")
-            continue
+#     while True:
+#         user_input = input("Enter your question: ")
+#         if user_input.lower() == "exit":
+#             break
+#         if user_input.lower() == "clear history":
+#         #     from agents.memory.memory_manager import clear_thread
+#         #     await clear_thread(user_id)
+#         #     print(f"History cleared for {user_id}")
+#         #     continue
     
-        response = await sqlite_agent.invoke_sql_agent(user_id, user_input)
-        print(response)
+#         # response = await sqlite_agent.invoke_sql_agent(user_id, user_input)
+#         print(response)
 
-if __name__ == "__main__":
-    import asyncio
-    asyncio.run(main())
+# if __name__ == "__main__":
+#     import asyncio
+#     asyncio.run(main())

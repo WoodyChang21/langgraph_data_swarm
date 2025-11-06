@@ -9,7 +9,7 @@ load_dotenv()
 # Load the model for the entire project
 LOCAL_MODEL = False  # Set to True for Ollama, False for OpenAI
 
-OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://host.docker.internal:11434")
 # OLLAMA_MODEL = "qwen3-coder:latest"
 # OLLAMA_MODEL = "llama3.1:latest"
 OLLAMA_MODEL = "qwen3:8b"

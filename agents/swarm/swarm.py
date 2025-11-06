@@ -8,7 +8,6 @@ This module implements a swarm of specialized agents:
 The agents can hand off tasks to each other and share data through:
 - CSV files (local storage)
 - S3 URLs (cloud storage)
-- Redis checkpointer (conversation memory)
 """
 
 import asyncio
@@ -19,13 +18,8 @@ from langgraph.prebuilt import create_react_agent
 from langgraph_swarm import create_handoff_tool, create_swarm
 
 from agents.llm_model import LLM
-from agents.sql_search_agent.sql_agent import SQLiteAgent
-from agents.plot_agent.plot_agent import PlotAgent
-from agents.memory.checkpointer import get_shared_checkpointer
-from agents.memory.memory_manager import trim_for_agent
 from agents.swarm.sql_agent_with_handoff import create_sql_agent_with_handoff
 from agents.swarm.plot_agent_with_handoff import create_plot_agent_with_handoff
-from agents.memory.memory_manager import clear_thread
 
 load_dotenv()
 
@@ -49,17 +43,6 @@ class AirportAgentSwarm:
         self.app = None
         self._initialized = False  # Track initialization state
     
-    async def clear_thread(self, user_id: str):
-        """
-        Clear corrupted thread history from Redis.
-        
-        Use when encountering: "tool_calls without ToolMessage" error
-        
-        Args:
-            user_id: User/thread ID to clear
-        """
-        return await clear_thread(user_id)
-    
     async def initialize(self):
         """
         Initialize the swarm with both agents (lazy initialization pattern).
@@ -76,8 +59,6 @@ class AirportAgentSwarm:
         sql_agent = await create_sql_agent_with_handoff()
         plot_agent = await create_plot_agent_with_handoff()
         
-        # Get shared checkpointer (singleton Redis connection)
-        checkpointer = await get_shared_checkpointer()
         
         # Create swarm workflow
         workflow = create_swarm(
@@ -86,7 +67,7 @@ class AirportAgentSwarm:
         )
         
         # Compile the workflow (ONCE for all users)
-        self.app = workflow.compile(checkpointer=checkpointer)
+        self.app = workflow.compile()
         self._initialized = True
         
         logger.info("Airport Agent Swarm initialized successfully (global, optimized)")
@@ -109,24 +90,7 @@ class AirportAgentSwarm:
         
         # User isolation via thread_id (not separate swarms!)
         config = {"configurable": {"thread_id": user_id}}
-        
-        # Trim conversation ONCE before invoking (trim_for_agent handles conditions & logging)
-        try:
-            current_state = await self.app.aget_state(config)
-            logger.info("Current Message Length", length=len(current_state.values.get("messages", [])))
-            if current_state and current_state.values:
-                # Get current messages
-                current_messages = current_state.values.get("messages", [])
-                # trim_for_agent handles: condition check, trimming, and logging
-                trimmed_result = trim_for_agent({"messages": current_messages})
-                # Update state if messages were modified
-                if "messages" in trimmed_result:
-                    await self.app.aupdate_state(config, trimmed_result)
-        
-        except Exception as e:
-            logger.warning("Could not trim before invoke", user_id=user_id, error=str(e))
-            # Continue anyway - trimming failure shouldn't block requests
-        
+
         logger.info("Invoking swarm", user_id=user_id, message=message)
         
         result = await self.app.ainvoke(
@@ -155,23 +119,6 @@ class AirportAgentSwarm:
         
         # User isolation via thread_id (not separate swarms!)
         config = {"configurable": {"thread_id": user_id}}
-        
-        # ✅ Trim conversation ONCE before invoking (trim_for_agent handles conditions & logging)
-        try:
-            current_state = await self.app.aget_state(config)
-            logger.info("Current Message Length", length=len(current_state.values.get("messages", [])))
-            if current_state and current_state.values:
-                # Get current messages
-                current_messages = current_state.values.get("messages", [])
-                # trim_for_agent handles: condition check, trimming, and logging
-                trimmed_result = trim_for_agent({"messages": current_messages})
-                # Update state if messages were modified
-                if "messages" in trimmed_result:
-                    await self.app.aupdate_state(config, trimmed_result)
-        
-        except Exception as e:
-            logger.warning("Could not trim before invoke", user_id=user_id, error=str(e))
-            # Continue anyway - trimming failure shouldn't block requests
         
         logger.info("Streaming swarm", user_id=user_id, message=message)
         

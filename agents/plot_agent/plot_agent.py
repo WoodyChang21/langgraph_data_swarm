@@ -13,7 +13,7 @@ from langgraph.prebuilt import create_react_agent
 from langchain_core.messages import HumanMessage
 
 from agents.llm_model import LLM
-from agents.memory.checkpointer import get_shared_checkpointer
+# from agents.memory.checkpointer import get_shared_checkpointer
 from agents.plot_agent.s3_html_utils import s3_uploader
 
 load_dotenv()
@@ -296,15 +296,13 @@ class PlotAgent:
     
     async def create_plot_agent(self):
         """Create a plot agent with shared checkpointer"""
-        checkpointer = await get_shared_checkpointer()
+        # checkpointer = await get_shared_checkpointer()
         tools = self._get_tools()
-        agent_graph = create_react_agent(
+        agent = create_react_agent(
             self.llm,
             tools,
             prompt=self._get_system_prompt()
         )
-        # Compile with checkpointer
-        agent = agent_graph.compile(checkpointer=checkpointer)
         return agent
     
     async def invoke_plot_agent(self, user_id: str, message: str):

@@ -14,6 +14,7 @@ langgraph-checkpoint-redis>=0.1.0
 langgraph-prebuilt>=0.2.0
 langmem>=0.0.29
 langgraph-swarm>=0.0.14
+langgraph-cli==0.4.7
 
 # Core dependencies
 openai>=1.0.0
