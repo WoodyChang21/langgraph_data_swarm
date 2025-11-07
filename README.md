@@ -11,8 +11,8 @@ This repository offers **two different implementations** to suit your needs:
 | **Branch** | [`langgraph-server`](https://github.com/WoodyChang21/langgraph-data-swarm/tree/langgraph-server) | [`openai_api`](https://github.com/WoodyChang21/langgraph-data-swarm/tree/openai_api) |
 | **Best For** | Fast prototyping, Demos, Development | Production, Robust UX, Full-featured |
 | **Setup Time** | ⚡ ~5 minutes | 🔧 ~15 minutes |
-| **Frontend** | Agent Chat UI (Vercel) | Open WebUI (Self-hosted) |
-| **Commands** | `langgraph up` | `docker-compose up` |
+| **Frontend** | Agent Chat UI (Langgraph) | Open WebUI (Self-hosted) |
+| **Commands** | `langgraph up` | `docker compose up` |
 | **Dependencies** | Python, OpenAI | Docker, Redis, Optional Ollama |
 | **Chat Interface** | Minimal, Clean | Rich, Feature-packed |
 | **Local LLM Support** | ❌ OpenAI only | ✅ Ollama integration |
