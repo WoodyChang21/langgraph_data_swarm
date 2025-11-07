@@ -28,7 +28,7 @@ services:
       # Development mounts (remove for production)
       - ./api:/app/api:rw           # API code (for hot reload)
       - ./agents:/app/agents:rw     # Agent code
-      # Note: Use :ro (read-only) for database to prevent accidental modifications
+      - ./database:/app/database:ro # Database (read-only to prevent accidental modifications)
     networks:
       - aiot_network
     healthcheck:
@@ -89,13 +89,14 @@ services:
       - ollama-data:/root/.ollama
     networks:
       - aiot_network
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu]
+    # GPU support (optional - uncomment if you have NVIDIA GPU with CUDA)
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
 
 volumes:
   open-webui:

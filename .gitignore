@@ -213,8 +213,8 @@ __marimo__/
 # ====================
 
 # Database files
-*.db
-*.sqlite
+# *.db
+# *.sqlite
 
 # Generated data files (project-specific)
 agents/plot_agent/plots/
