@@ -13,7 +13,6 @@ from langgraph.prebuilt import create_react_agent
 from langchain_core.messages import HumanMessage
 
 from agents.llm_model import LLM
-# from agents.memory.checkpointer import get_shared_checkpointer
 from agents.plot_agent.s3_html_utils import s3_uploader
 
 load_dotenv()
@@ -30,20 +29,20 @@ class PlotAgent:
 
     def _get_system_prompt(self):
         return """You are a data visualization expert. Your role is to:
-            1. Read CSV data from provided file paths or S3 URLs
-            2. Analyze the data structure and recommend appropriate visualizations
-            3. Create clear, informative plots using matplotlib or plotly
-            4. Save plots to files and provide file paths
+        1. Read CSV data from provided file paths or S3 URLs
+        2. Analyze the data structure and recommend appropriate visualizations
+        3. Create clear, informative plots using matplotlib or plotly
+        4. Save plots to files and provide file paths
 
-            When a user provides a CSV file path or S3 URL, you should:
-            - Use the 'read_csv_data' tool to load the data
-            - Use the 'create_plot' tool to generate visualizations
-            - Suggest multiple visualization options when appropriate
+        When a user provides a CSV file path or S3 URL, you should:
+        - Use the 'read_csv_data' tool to load the data
+        - Use the 'create_plot' tool to generate visualizations
+        - Suggest multiple visualization options when appropriate
 
-            Always consider the data types and relationships when choosing plot types.
-            
-            Format the S3 URL as web embedding iframe. The ```html ``` code block should be used for markdown rendering.
-            """
+        Always consider the data types and relationships when choosing plot types.
+        
+        Format the S3 URL as web embedding iframe. The ```html ``` code block should be used for markdown rendering.
+        """
 
     def _format_plot_response(self, s3_url: str, plot_title: str) -> str:
         """Format the plot response for different frontends"""
@@ -194,17 +193,15 @@ class PlotAgent:
                 if not csv_path:
                     return "Error: csv_path is required"
                 
-                # Check if it's a valid CSV file (URL or local path ending with .csv)
-                if not (csv_path.endswith('.csv') or 
-                        csv_path.startswith('http://') or 
-                        csv_path.startswith('https://')):
-                    return f"Error: Invalid file path. Must be a CSV file or S3 URL, got: {csv_path}"
+                # Check if URL is valid S3 URL ending with .csv. If not, ask SQL Agent to export the data to CSV file first.
+                if not (csv_path.endswith('.csv') and csv_path.startswith('https://')):
+                    return f"Error: Invalid file path. Must be a S3 URL ending with .csv, got: {csv_path}. Ask SQL Agent to export the data to CSV file first."
                 
                 # Read the data (pandas handles both URLs and local paths)
                 df = pd.read_csv(csv_path)
                 
                 if df.empty:
-                    return "Cannot create plot: CSV file is empty"
+                    return "Cannot create plot: CSV file is empty. Ask SQL Agent to export the data to CSV file first."
                 
                 # Generate timestamp for unique filename
                 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")[:19]  # Include milliseconds (YYYYMMDD_HHMMSS_mmm)
@@ -295,8 +292,6 @@ class PlotAgent:
 # ==================================== Agent ==============================================
     
     async def create_plot_agent(self):
-        """Create a plot agent with shared checkpointer"""
-        # checkpointer = await get_shared_checkpointer()
         tools = self._get_tools()
         agent = create_react_agent(
             self.llm,

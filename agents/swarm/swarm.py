@@ -3,7 +3,8 @@ LangGraph Swarm Multi-Agent System for Airport Data Analysis
 
 This module implements a swarm of specialized agents:
 1. SQL Agent: Handles database queries and exports data to CSV/S3
-2. Plot Agent: Creates visualizations from the data
+2. Analysis Agent: Performs statistical analysis and data transformations
+3. Plot Agent: Creates visualizations from the data
 
 The agents can hand off tasks to each other and share data through:
 - CSV files (local storage)
@@ -19,6 +20,7 @@ from langgraph_swarm import create_handoff_tool, create_swarm
 
 from agents.llm_model import LLM
 from agents.swarm.sql_agent_with_handoff import create_sql_agent_with_handoff
+from agents.swarm.analysis_agent_with_handoff import create_analysis_agent_with_handoff
 from agents.swarm.plot_agent_with_handoff import create_plot_agent_with_handoff
 
 load_dotenv()
@@ -33,8 +35,15 @@ class AirportAgentSwarm:
     Workflow:
     1. User asks a question → SQL Agent queries database
     2. SQL Agent exports data to CSV and S3
-    3. SQL Agent can hand off to Plot Agent with CSV path/S3 URL
-    4. Plot Agent reads the data and creates visualizations
+    3. SQL Agent can hand off to:
+       - Analysis Agent: For statistical analysis, aggregations, transformations
+       - Plot Agent: For visualizations and charts
+    4. Analysis Agent can hand off to:
+       - Plot Agent: For visualizing analyzed results
+       - SQL Agent: For requesting different/additional data
+    5. Plot Agent can hand off to:
+       - Analysis Agent: For deeper analysis of plotted data
+       - SQL Agent: For requesting different/additional data
     """
     
     def __init__(self):
@@ -57,12 +66,13 @@ class AirportAgentSwarm:
         
         # Create agents with handoff capabilities (no user_id - runtime extraction!)
         sql_agent = await create_sql_agent_with_handoff()
+        analysis_agent = await create_analysis_agent_with_handoff()
         plot_agent = await create_plot_agent_with_handoff()
         
         
         # Create swarm workflow
         workflow = create_swarm(
-            agents=[sql_agent, plot_agent],
+            agents=[sql_agent, analysis_agent, plot_agent],
             default_active_agent="SQLAgent"  # Start with SQL agent
         )
         
@@ -147,13 +157,19 @@ async def test_invoke():
     print("=" * 80)
     print("\nAvailable agents:")
     print("  1. SQLAgent - Queries airport database and exports data")
-    print("  2. PlotAgent - Creates visualizations from data")
+    print("  2. AnalysisAgent - Performs statistical analysis and data transformations")
+    print("  3. PlotAgent - Creates visualizations from data")
     print("\nDatabase date range: August 2024 - July 2025")
     print("\nExample queries:")
+    print("\nSQL + Analysis:")
+    print("  - 'Query January 2025 Japan flights and analyze average passengers by airline'")
+    print("  - 'Get Korea departure data and calculate correlation between time and passenger count'")
+    print("\nSQL + Plot:")
     print("  - '2025年1月從日本出發的航班有哪些？請匯出CSV並繪製圖表'")
-    print("  - 'Show me arrival flights from Korea in January 2025 and create a bar chart by destination'")
-    print("  - 'Query departure data between 2024-12-01 and 2024-12-31 and visualize the top destinations'")
-    print("  - 'Get flights from Taiwan in 2025-01 and create a pie chart by airline'")
+    print("  - 'Show me arrival flights from Korea in January 2025 and create a bar chart'")
+    print("\nSQL + Analysis + Plot:")
+    print("  - 'Query December 2024 flights, analyze top destinations, then visualize results'")
+    print("  - 'Get Taiwan flights in 2025-01, calculate statistics, and create a pie chart by airline'")
     print("\nType 'exit' to quit\n")
     
     while True:

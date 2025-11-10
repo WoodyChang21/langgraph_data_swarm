@@ -15,7 +15,6 @@ from langchain_core.messages import HumanMessage
 
 from agents.sql_search_agent.s3_csv_utils import s3_csv_uploader
 from agents.llm_model import LLM
-# from agents.memory.checkpointer import get_shared_checkpointer
 
 logger = logging.getLogger(__name__)
 load_dotenv()
@@ -363,13 +362,11 @@ class SQLiteAgent:
 # ==================================== Agent (For STANDALONE purposes) ==============================================
     
     async def create_sql_agent(self):
-        # checkpointer = await get_shared_checkpointer()
         tools = self._get_tools()
         agent = create_react_agent(
             self.llm,
             tools,
             prompt=self._get_system_prompt(),
-            checkpointer=checkpointer
         )
         return agent
     
