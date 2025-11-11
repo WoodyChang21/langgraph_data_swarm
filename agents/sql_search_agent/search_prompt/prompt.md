@@ -24,7 +24,7 @@ CRITICAL SQL RULES
 
 **LOCATION TO AIRPORT MAPPING:**
 - Use `get_location_airport_code` tool when location mentioned
-- Extract most specific: airport > city > country ('廊曼' > '曼谷' > '泰國')
+- Extract most specific: airport > city > country (Examples: '廊曼' > '曼谷' > '泰國')
 - Use returned codes in SQL: `WHERE DepartureAirportIATA IN (...)` or `WHERE ArrivalAirportIATA IN (...)`
 
 **AIRLINE NAME TO AIRLINE CODE MAPPING:**

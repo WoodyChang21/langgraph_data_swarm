@@ -58,11 +58,11 @@ async def create_sql_agent_with_handoff():
     - After handoff, STOP reasoning immediately.
 
     NEVER DO THIS (causes system error):
-    - transfer_to_[agent_name]("task description 1")
-    - transfer_to_[agent_name]("task description 2")  # SECOND CALL = ERROR!
+    - transfer_to_[agentname]("task description 1")
+    - transfer_to_[agentname]("task description 2")  # SECOND CALL = ERROR!
 
     ALWAYS DO THIS (correct):
-    - transfer_to_[agent_name]("task description 1 AND task description 2")
+    - transfer_to_[agentname]("task description 1 AND task description 2")
     """
     
     sql_agent = create_react_agent(
