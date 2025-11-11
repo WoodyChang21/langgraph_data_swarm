@@ -1,0 +1,7 @@
+services:
+  langgraph-api:
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./agents/sql_search_agent/csv:/deps/outer-AIoT_KHH_Airport_AI_Agent_revise/AIoT_KHH_Airport_AI_Agent_revise/agents/sql_search_agent/csv
+      - ./agents/plot_agent/plots:/deps/outer-AIoT_KHH_Airport_AI_Agent_revise/AIoT_KHH_Airport_AI_Agent_revise/agents/plot_agent/plots

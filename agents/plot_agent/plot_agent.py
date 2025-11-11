@@ -61,6 +61,8 @@ class PlotAgent:
 ```
 
 **Direct Link:** {s3_url}
+
+Provide both options for the user to choose.
 """
         return response
     
@@ -117,11 +119,11 @@ class PlotAgent:
             Always use this tool to inspect data before calling create_plot.
             """
             try:
-                # Check if it's an S3 URL
-                if csv_path.startswith("http://") or csv_path.startswith("https://"):
+                # Check if csv path valid
+                if csv_path.endswith('.csv'):
                     df = pd.read_csv(csv_path)
                 else:
-                    df = pd.read_csv(csv_path)
+                    return f"Error: Invalid file path. Must end with .csv, got: {csv_path}. Ask SQL Agent to export the data to CSV file first."
                 
                 if df.empty:
                     return "The CSV file is empty."
@@ -151,7 +153,7 @@ class PlotAgent:
         
         @tool
         def create_plot(
-            csv_path: Annotated[str, "File path or S3 URL to the CSV file"],
+            csv_path: Annotated[str, "The local file path of the CSV file"],
             plot_type: Annotated[str, "Type of plot: 'bar', 'line', 'scatter', 'pie', 'histogram', or 'box'"],
             config: Annotated[RunnableConfig, InjectedToolArg],
             x_column: Annotated[Optional[str], "Column name for x-axis"] = None,
@@ -193,9 +195,10 @@ class PlotAgent:
                 if not csv_path:
                     return "Error: csv_path is required"
                 
-                # Check if URL is valid S3 URL ending with .csv. If not, ask SQL Agent to export the data to CSV file first.
-                if not (csv_path.endswith('.csv') and csv_path.startswith('https://')):
-                    return f"Error: Invalid file path. Must be a S3 URL ending with .csv, got: {csv_path}. Ask SQL Agent to export the data to CSV file first."
+                
+                # Check if it's a valid CSV URL (S3 or local HTTP)
+                if not csv_path.endswith('.csv'):
+                    return f"Error: Invalid file path. Must end with .csv, got: {csv_path}. Ask SQL Agent to export the data to CSV file first."
                 
                 # Read the data (pandas handles both URLs and local paths)
                 df = pd.read_csv(csv_path)
@@ -266,6 +269,11 @@ class PlotAgent:
                 # Clean up old plots
                 self._clean_plot_files(user_id)
                 
+                local_http_url = f"http://localhost:8080/plot_agent/plots/{user_id}/{plot_filename}"
+                return self._format_plot_response(local_http_url, title or f"{plot_type.capitalize()} Plot")
+                
+                # return 
+
                 # Upload to S3 for universal access
                 s3_url = s3_uploader.upload_html(plot_path, user_id)
                 

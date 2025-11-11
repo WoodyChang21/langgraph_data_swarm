@@ -301,6 +301,9 @@ class SQLiteAgent:
             
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")[:19]  # Include milliseconds (YYYYMMDD_HHMMSS_mmm)
             csv_path = f"{CSV_PATH}/{user_id}/data_{timestamp}.csv"
+            
+
+            
 
             try:
                 conn = sqlite3.connect(self.db_path)
@@ -313,19 +316,25 @@ class SQLiteAgent:
                 # Create directory and save CSV
                 os.makedirs(os.path.dirname(csv_path), exist_ok=True)
                 df.to_csv(csv_path, index=False)
+                filename = f"data_{timestamp}.csv"
+                local_file_path = f"http://localhost:8080/sql_search_agent/csv/{user_id}/{filename}"
 
                 # Clean CSV path
                 self._clean_csv_files(user_id)
 
-                # Upload CSV file to S3
-                s3_csv_url = s3_csv_uploader.upload_csv_file(csv_path, user_id)
-                if s3_csv_url is None:
-                    return "Error: Failed to upload CSV file to S3"
-                
-                return f"S3 CSV URL generated:\n {s3_csv_url}"
+                return f"""✅ CSV exported successfully!
+
+📥 **CSV URL:** {local_file_path}
+
+💡 **For Handoffs:** When transferring to Analysis Agent or Plot Agent, use this URL:
+   {csv_path}
+
+When you transfer to Analysis Agent or Plot Agent, you should use {csv_path} as the CSV path.
+"""
 
             except Exception as e:
                 return f"Error: {e}"
+        
         csv_export_tool_description = (
             "Input to this tool is a detailed and correct SQL query, output is a "
             "result from the database exported to CSV file. "
