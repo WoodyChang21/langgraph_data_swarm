@@ -66,12 +66,3 @@ class AnalysisAgent:
         return response["messages"][-1].content
 
 analysis_agent = AnalysisAgent()
-
-if __name__ == "__main__":
-    import asyncio
-    user_id = "1"
-    csv_url = "https://s3.ap-northeast-1.amazonaws.com/ssp.retailing-data.net/projects/KHH_Airport/file_folder/f8d14c82-91ed-45fe-87ae-dc627641b6e1/data/data_20251110_112205_421.csv"
-    user_message = f"I've exported flight data to {csv_url}. Please analyze the data"
-
-    response = asyncio.run(analysis_agent.invoke_analysis_agent(user_id, user_message))
-    print(response)

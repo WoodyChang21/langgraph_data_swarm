@@ -13,7 +13,6 @@ from langgraph.prebuilt import create_react_agent
 from langchain_core.messages import HumanMessage
 
 from agents.llm_model import LLM
-from agents.plot_agent.s3_html_utils import s3_uploader
 
 load_dotenv()
 
@@ -29,22 +28,22 @@ class PlotAgent:
 
     def _get_system_prompt(self):
         return """You are a data visualization expert. Your role is to:
-        1. Read CSV data from provided file paths or S3 URLs
+        1. Read CSV data from provided file paths
         2. Analyze the data structure and recommend appropriate visualizations
         3. Create clear, informative plots using matplotlib or plotly
         4. Save plots to files and provide file paths
 
-        When a user provides a CSV file path or S3 URL, you should:
+        When a user provides a CSV file path, you should:
         - Use the 'read_csv_data' tool to load the data
         - Use the 'create_plot' tool to generate visualizations
         - Suggest multiple visualization options when appropriate
 
         Always consider the data types and relationships when choosing plot types.
         
-        Format the S3 URL as web embedding iframe. The ```html ``` code block should be used for markdown rendering.
+        Format the local csv url as web embedding iframe. The ```html ``` code block should be used for markdown rendering.
         """
 
-    def _format_plot_response(self, s3_url: str, plot_title: str) -> str:
+    def _format_plot_response(self, url: str, plot_title: str) -> str:
         """Format the plot response for different frontends"""
         # Format with proper HTML code block for markdown rendering
         response = f"""✅ Plot created successfully: {plot_title}
@@ -53,14 +52,14 @@ class PlotAgent:
 
 ```html
 <iframe
-  src="{s3_url}"
+  src="{url}"
   width="100%"
   height="600px"
   frameborder="0">
 </iframe>
 ```
 
-**Direct Link:** {s3_url}
+**Direct Link:** {url}
 
 Provide both options for the user to choose.
 """
@@ -95,19 +94,18 @@ Provide both options for the user to choose.
 # ==================================== Tools ==============================================
     
     def _get_read_csv_tool(self):
-        """Tool to read CSV data from file path or S3 URL"""
+        """Tool to read CSV data from file path"""
         
         @tool
         def read_csv_data(
-            csv_path: Annotated[str, "File path or S3 URL to the CSV file"]
+            csv_path: Annotated[str, "File path to the CSV file"]
         ) -> str:
-            """Read and analyze CSV data from a file path or S3 URL.
+            """Read and analyze CSV data from a file path.
             
             Use this tool FIRST before creating plots to understand the data structure.
             
             Args:
                 csv_path: Full file path (e.g., 'agents/sql_search_agent/csv/user123/data_20250104.csv') 
-                         or S3 URL (e.g., 'https://s3.amazonaws.com/bucket/data.csv')
             
             Returns:
                 Data summary including:
@@ -196,7 +194,7 @@ Provide both options for the user to choose.
                     return "Error: csv_path is required"
                 
                 
-                # Check if it's a valid CSV URL (S3 or local HTTP)
+                # Check if it's a valid CSV URL (local csv path)
                 if not csv_path.endswith('.csv'):
                     return f"Error: Invalid file path. Must end with .csv, got: {csv_path}. Ask SQL Agent to export the data to CSV file first."
                 
@@ -271,20 +269,6 @@ Provide both options for the user to choose.
                 
                 local_http_url = f"http://localhost:8080/plot_agent/plots/{user_id}/{plot_filename}"
                 return self._format_plot_response(local_http_url, title or f"{plot_type.capitalize()} Plot")
-                
-                # return 
-
-                # Upload to S3 for universal access
-                s3_url = s3_uploader.upload_html(plot_path, user_id)
-                
-                # Return absolute path for clarity
-                abs_plot_path = os.path.abspath(plot_path)
-                
-                if s3_url:
-                    # Format response for different frontends
-                    return self._format_plot_response(s3_url, title or f"{plot_type.capitalize()} Plot")
-                else:
-                    return f"Plot created successfully! Saved to: {abs_plot_path}\n⚠️ Warning: S3 upload failed, plot only available locally."
                 
             except Exception as e:
                 return f"Error creating plot: {str(e)}" 

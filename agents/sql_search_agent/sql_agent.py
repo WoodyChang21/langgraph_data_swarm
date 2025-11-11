@@ -13,7 +13,6 @@ from langchain_community.agent_toolkits import SQLDatabaseToolkit
 from langgraph.prebuilt import create_react_agent
 from langchain_core.messages import HumanMessage
 
-from agents.sql_search_agent.s3_csv_utils import s3_csv_uploader
 from agents.llm_model import LLM
 
 logger = logging.getLogger(__name__)
@@ -294,7 +293,7 @@ class SQLiteAgent:
                        This should be the SQL statement itself, NOT the result or output of a query.
                 
             Returns:
-                S3 URL of the exported CSV file
+                Local CSV file path
             """
             # Extract user_id from config's thread_id
             user_id = config.get("configurable", {}).get("thread_id", "default")
@@ -342,7 +341,7 @@ When you transfer to Analysis Agent or Plot Agent, you should use {csv_path} as 
             "If an error is returned, rewrite the query, check the query, and try again. "
             "If you encounter an issue with Unknown column 'xxxx' in 'field list', "
             "use 'sql_db_schema' to query the correct table fields. "
-            "This tool saves results to CSV file and uploads to S3."
+            "This tool saves results to CSV file and returns the local CSV file path."
             "Only use this tool when the user requests to export the results to CSV file."
         )
         csv_export_tool = Tool(
